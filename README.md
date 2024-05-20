@@ -9,3 +9,6 @@
 
  And again big thanks to @Dogino and his Phishing-Url list with out it
  this bot wouldnt get new phsihing links targetting discord
+
+ tracking channel is set via the !set_tracking_channel "id" command
+ working on making it a slash command 
