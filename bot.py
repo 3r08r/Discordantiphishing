@@ -3,7 +3,6 @@ import datetime
 import json
 import re
 from urllib.parse import urlparse
-
 import discord
 import requests
 from discord.ext import commands
@@ -40,6 +39,7 @@ def load_tracking_channel_ids():
 
 @bot.event
 async def on_ready():
+    await bot.tree.sync()
     """Event triggered when the bot is ready"""
     print(f"Logged in as {bot.user.name}")
     load_tracking_channel_ids()
@@ -163,6 +163,7 @@ async def set_tracking_channel(ctx, channel: discord.TextChannel):
     TRACKING_CHANNEL_ID[ctx.guild.id] = channel.id
     await ctx.send(f"Tracking channel has been set to {channel.name}")
     save_tracking_channel_ids()
+
 
 @bot.event
 async def on_command_error(ctx, error):
