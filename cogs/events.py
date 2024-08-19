@@ -2,18 +2,12 @@ import datetime
 import discord
 import json
 from discord.ext import commands
-from base_cog import BaseCog
+from .base_cog import BaseCog
 
 
 class BotEvents(BaseCog):
     def __init__(self, bot):
         super().__init__(bot)
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="er0r.me"))
-        await self.bot.tree.sync()
-        print(f"Logged in as {self.bot.user.name}")
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
