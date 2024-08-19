@@ -1,23 +1,14 @@
 import json
 import discord
 from discord.ext import commands
+from base_cog import BaseCog
 
 
-class utilities(commands.Cog):
+class utilities(BaseCog):
 
     def save_tracking_channel_ids(self):
         with open("tracking_channel_ids.json", "w") as f:
             json.dump({str(k): v for k, v in self.tracking_channel_ids.items()}, f)
-
-    def load_tracking_channel_ids(self):
-        try:
-            with open("tracking_channel_ids.json", "r") as f:
-                try:
-                    self.tracking_channel_ids.update({int(k): v for k, v in json.load(f).items()})
-                except json.JSONDecodeError:
-                    pass
-        except FileNotFoundError:
-            pass
 
     def save_immunity_roles(self):
         with open("immunity_roles.json", "w") as f:

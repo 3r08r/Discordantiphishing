@@ -4,25 +4,13 @@ import discord
 import datetime
 from urllib.parse import urlparse
 from discord.ext import commands
-from .base_cog import BaseCog
+from base_cog import BaseCog
 
 
 class AntiPhishing(BaseCog):
 
     def __init__(self, bot):
         super().__init__(bot)
-
-    def load_tracking_channel_ids(self):
-        try:
-            with open("tracking_channel_ids.json", "r") as f:
-                try:
-                    self.tracking_channel_ids.update({int(k): v for k, v in json.load(f).items()})
-                except json.JSONDecodeError:
-                    pass
-        except FileNotFoundError:
-            pass
-
-    def __init__(self, bot):
         self.bot = bot
         self.tracking_channel_ids = {}
         self.API_KEY = self.bot.config.get("DEFAULT", "API_KEY")

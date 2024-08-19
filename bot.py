@@ -34,6 +34,9 @@ async def load_cogs():
 @bot.event
 async def on_ready():
     await load_cogs()
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="er0r.me"))
+    await bot.tree.sync()
+    print(f"Logged in as {bot.user.name}")
 
 
 bot.run(TOKEN)
