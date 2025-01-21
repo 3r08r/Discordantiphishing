@@ -6,13 +6,3 @@ from .commands import BotCommands
 from .events import BotEvents
 from .utilities import utilities
 from .anti_spam import AntiSpam
-
-
-async def setup(bot):
-    await bot.add_cog(AntiPhishing(bot))
-    await bot.add_cog(AntiSpam(bot))
-    await bot.add_cog(BackupCog(bot))
-    await bot.add_cog(BaseCog(bot))
-    await bot.add_cog(BotCommands(bot))
-    await bot.add_cog(BotEvents(bot))
-    await bot.add_cog(utilities(bot))

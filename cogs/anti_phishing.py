@@ -1,16 +1,16 @@
 import re
-import requests
-import discord
-import datetime
+import asyncio
+import aiohttp
 from urllib.parse import urlparse
 from discord.ext import commands
 from .base_cog import BaseCog
+from .events import BotEvents
+from urlextract import URLExtract
 
 
-class AntiPhishing(BaseCog):
+class AntiPhishing(BotEvents, BaseCog):
 
     def __init__(self, bot):
-        super().__init__(bot)
         self.bot = bot
         self.tracking_channel_ids = {}
         self.API_KEY = self.bot.config.get("DEFAULT", "API_KEY")
@@ -21,81 +21,75 @@ class AntiPhishing(BaseCog):
     async def on_message(self, message):
         if message.author == self.bot.user:
             return
+        
 
-        # Handle skibidi keyword messages
-        if self.SKIBIDI_PATTERN.search(message.content):
-            await self.handle_skibidi_message(message)
+ 
 
-        # Check if the message contains phishing URLs
-        urls = self.find_urls_in_message(message.content)
-        for url in urls:
-            if await self.is_phishing_link(url):
-                await self.handle_phishing_link(message, url)
-                break
+        try:
+            # Handle skibidi keyword messages
+            if self.SKIBIDI_PATTERN.search(message.content):
+                await self.handle_skibidi_message(message)
+
+            # Check if the message contains phishing URLs
+            urls = self.find_urls_in_message(message.content)
+            for url in urls:
+                if await self.is_phishing_link(url):
+                    await self.handle_phishing_link(message, url)
+                    break
+        except Exception as e:
+            print(f"no skibidi or phishing link found: {e}")
 
     def find_urls_in_message(self, message):
-        return re.findall(r"(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-?=%.]+", message)
+        extractor = URLExtract()
+        urls = extractor.find_urls(message)
+        return urls
 
     async def is_phishing_link(self, url):
         api_url = f"https://safebrowsing.googleapis.com/v4/threatMatches:find?key={self.API_KEY}"
         payload = {
             "threatInfo": {
-                "threatTypes": ["MALWARE", "SOCIAL_ENGINEERING"],
+                "threatTypes": ["SOCIAL_ENGINEERING", "MALWARE", "UNWANTED_SOFTWARE", "POTENTIALLY_HARMFUL_APPLICATION"],
                 "platformTypes": ["ANY_PLATFORM"],
                 "threatEntryTypes": ["URL"],
                 "threatEntries": [{"url": url}],
             }
         }
-        response = requests.post(api_url, json=payload)
-        if response.status_code == 200 and "matches" in response.json():
-            return True
-        return self.check_against_links_file(url)
 
-    def check_against_links_file(self, url):
-        domain = urlparse(url).netloc.rstrip("/")
-        response = requests.get("https://raw.githubusercontent.com/Dogino/Discord-Phishing-URLs/main/scam-urls.txt")
-        for line in response.iter_lines():
-            if domain in line.decode("utf-8"):
-                return True
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(api_url, json=payload, timeout=10) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        if "matches" in data:
+                            return True
+                    else:
+                        print(f"Error: Google Safe Browsing API returned status {response.status}")
+        except aiohttp.ClientError as e:
+            print(f"Error contacting Google Safe Browsing API: {e}")
+        except asyncio.TimeoutError:
+            print("Error: Request to Google Safe Browsing API timed out.")
+
         return False
 
-    async def handle_phishing_link(self, message, url):
-        await message.delete()
-        embed = self.create_embed(message, url)
-        tracking_channel_id = self.tracking_channel_ids.get(message.guild.id)
-        if tracking_channel_id:
-            tracking_channel = self.bot.get_channel(tracking_channel_id)
-            await tracking_channel.send(embed=embed)
+    async def check_against_links_file(self, url):
+        domain = urlparse(url).netloc.rstrip("/")
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                        "https://raw.githubusercontent.com/Dogino/Discord-Phishing-URLs/main/scam-urls.txt",
+                        timeout=10) as response:
+                    if response.status == 200:
+                        content = await response.text()
+                        if domain in content:
+                            return True
+                    else:
+                        print(f"Error: Phishing URL list returned status {response.status}")
+        except aiohttp.ClientError as e:
+            print(f"Error fetching phishing URL list: {e}")
+        except asyncio.TimeoutError:
+            print("Error: Request to fetch phishing URL list timed out.")
 
-    def create_embed(self, message, url):
-        embed = discord.Embed(
-            title="Phishing Link Detected",
-            description=f"A phishing link was detected in a message by {message.author.name}",
-            color=discord.Color.red(),
-        )
-        embed.add_field(name="Date", value=datetime.datetime.now().strftime("%Y-%m-%d"))
-        embed.add_field(name="Time", value=datetime.datetime.now().strftime("%H:%M:%S"))
-        embed.add_field(name="Username", value=message.author.name)
-        embed.add_field(name="Message Content", value=message.content)
-        embed.add_field(name="Phishing URL", value=url)
-        return embed
-
-    async def handle_skibidi_message(self, message):
-        await message.delete()
-        embed = discord.Embed(
-            title="Message Deleted",
-            description=f"A message containing 'skibidi' keywords was deleted.",
-            color=discord.Color.red()
-        )
-        embed.add_field(name="User", value=message.author.name, inline=True)
-        embed.add_field(name="Channel", value=message.channel.name, inline=True)
-        embed.add_field(name="Message Content", value=message.content, inline=False)
-        embed.add_field(name="Date", value=datetime.datetime.now().strftime("%Y-%m-%d"), inline=True)
-        embed.add_field(name="Time", value=datetime.datetime.now().strftime("%H:%M:%S"), inline=True)
-        tracking_channel_id = self.tracking_channel_ids.get(message.guild.id)
-        if tracking_channel_id:
-            tracking_channel = self.bot.get_channel(tracking_channel_id)
-            await tracking_channel.send(embed=embed)
+        return False
 
 
 async def setup(bot):

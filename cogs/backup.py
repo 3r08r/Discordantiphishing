@@ -26,6 +26,7 @@ class BackupCog(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="backup", description="Backup server data")
+    @commands.has_permissions(administrator=True)
     async def backup(self, interaction: discord.Interaction):
         if not is_admin(interaction.user):
             await interaction.response.send_message("You do not have permission to use this command.", ephemeral=True)
@@ -69,15 +70,6 @@ class BackupCog(commands.Cog):
             })
 
 
-        for member in guild.members:
-            backup_data["members"].append({
-                "name": str(member),
-                "id": member.id,
-                "roles": [role.id for role in member.roles],
-                "joined_at": member.joined_at.isoformat() if member.joined_at else None,
-            })
-
-
         backup_filename = os.path.join("backups", f"backup_{backup_id}.json")
         os.makedirs(os.path.dirname(backup_filename), exist_ok=True)
         with open(backup_filename, "w") as f:
@@ -86,6 +78,7 @@ class BackupCog(commands.Cog):
         await interaction.followup.send(f"Backup completed successfully! Backup ID: {backup_id}")
 
     @app_commands.command(name="restore", description="Restore server data from a backup")
+    @commands.has_permissions(administrator=True)
     async def restore(self, interaction: discord.Interaction, backup_id: str):
         if not is_admin(interaction.user):
             await interaction.response.send_message("You do not have permission to use this command.", ephemeral=True)

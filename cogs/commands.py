@@ -2,12 +2,11 @@ import discord
 from discord.ext import commands
 from .base_cog import BaseCog
 
-
 class BotCommands(BaseCog):
     def __init__(self, bot):
         super().__init__(bot)
-
-    @commands.hybrid_command(name="whodis")
+        self.original_permissions = {}
+    @commands.hybrid_command(name="sigma")
     async def help(self, ctx):
         embed = discord.Embed(
             title="Phishing Bot",
@@ -53,8 +52,64 @@ class BotCommands(BaseCog):
         await ctx.send(embed=embed)
 
     @commands.hybrid_command(name="ping")
-    async def ping(self, ctx):
+    async def cmd_ping(self, ctx):
         await ctx.send("Pong!")
+# Set Tracking Channel fixed , saved in die datei via add_tracking_channel_id
+    @commands.hybrid_command(name="set_tracking", with_app_command=True)
+    @commands.has_permissions(administrator=True)
+    async def cmd_set_tracking_channel(self, ctx, channel: discord.TextChannel):
+
+        try:
+            await self.add_tracking_channel_id(ctx.guild.id, channel.id)
+            await ctx.send(f"Tracking channel has been set to {channel.mention}")
+
+        except Exception as e:
+            await ctx.send(f"An error occurred while processing the command: {e}")
+
+    @commands.hybrid_command(name="add_immunity_role")
+    @commands.has_permissions(administrator=True)
+    async def cmd_add_immunity_role(self, ctx, role: discord.Role):
+        guild_id = ctx.guild.id
+        role_id = role.id
+        await self.add_immunity_role(guild_id, role_id)
+        await ctx.send(f"Role {role.name} ist nun immun.")
+    @commands.hybrid_command(name="remove_immunity_role")
+    @commands.has_permissions(administrator=True)
+    async def cmd_remove_immunity_role(self, ctx, role: discord.Role):
+        await self.remove_immunity_role(ctx.guild.id, role.id)
+        await ctx.send(f"Role {role.name} ist nicht mehr immun.")
+
+    @commands.hybrid_command(name="is_immune")
+    async def cmd_is_immune(self, ctx, role: discord.Role):
+        is_immune = await self.has_immunity_role(ctx.guild.id, role.id)
+        if is_immune == True:
+            await ctx.send(f"Role {role.name} ist immun.")
+        else:
+            await ctx.send(f"Role {role.name} ist nicht immun.")
+
+
+    @commands.hybrid_command(name="lock_channel")
+    @commands.has_permissions(administrator=True)
+    async def cmd_lock_channel(self, ctx):
+        self.original_permissions[ctx.channel.id] = {}
+        for role in ctx.guild.roles:
+            self.original_permissions[ctx.channel.id][role.id] = ctx.channel.overwrites_for(role).send_messages
+            await ctx.channel.set_permissions(role, send_messages=False)
+        await ctx.send("Channel has been locked")
+
+    @commands.hybrid_command(name="unlock_channel")
+    @commands.has_permissions(administrator=True)
+    async def cmd_unlock_channel(self, ctx):
+        if ctx.channel.id in self.original_permissions:
+            for role in ctx.guild.roles:
+                original_send_messages = self.original_permissions[ctx.channel.id].get(role.id, None)
+                await ctx.channel.set_permissions(role, send_messages=original_send_messages)
+            await ctx.send("Channel has been unlocked")
+        else:
+            await ctx.send("No original permissions found for this channel")
+
+
+
 
 async def setup(bot):
     await bot.add_cog(BotCommands(bot))

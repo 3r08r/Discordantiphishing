@@ -1,6 +1,5 @@
 import time
 import discord
-import json
 from discord.ext import commands
 from .base_cog import BaseCog
 
@@ -17,8 +16,16 @@ class AntiSpam(BaseCog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+
         if message.author == self.bot.user:
             return
+
+
+        for role in message.author.roles:
+            if await self.has_immunity_role(message.guild.id, role.id):
+                return
+
+
 
         current_time = time.time()
 
