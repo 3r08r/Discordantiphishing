@@ -1,3 +1,4 @@
 discord.py
 aiohttp
 urlextract
+audioop-lts
