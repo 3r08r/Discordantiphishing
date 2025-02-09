@@ -1,6 +1,6 @@
 discord.py
 aiohttp
-urlextract
+URLExtract
 audioop-lts
 configparser
 discord.ext
