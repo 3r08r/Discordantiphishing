@@ -1,4 +1,4 @@
-discord.py
+discord
 aiohttp
 URLExtract
 audioop-lts
