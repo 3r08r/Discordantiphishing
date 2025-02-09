@@ -2,3 +2,15 @@ discord.py
 aiohttp
 urlextract
 audioop-lts
+configparser
+discord.ext
+re
+asyncio
+urllib
+datetime
+time 
+collections
+typing
+os
+uuid
+json
