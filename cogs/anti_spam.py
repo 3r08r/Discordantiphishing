@@ -18,8 +18,8 @@ class AntiSpam(BaseCog):
         # Spam configuration
         self.SPAM_THRESHOLD = 5  # Messages
         self.TIME_WINDOW = 5.0   # Seconds
-        self.REPEAT_THRESHOLD = 2  # Repeated messages
-        self.TIMEOUT_DURATION = 60  # Seconds
+        self.REPEAT_THRESHOLD = 3  # Repeated messages
+        self.TIMEOUT_DURATION = 30  # Seconds
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):

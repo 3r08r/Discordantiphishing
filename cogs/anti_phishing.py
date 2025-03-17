@@ -77,7 +77,7 @@ class AntiPhishing(BotEvents, BaseCog):
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
-                        "https://raw.githubusercontent.com/Dogino/Discord-Phishing-URLs/main/scam-urls.txt",
+                        "https://phish.co.za/latest/phishing-links-ACTIVE.txt",
                         timeout=10) as response:
                     if response.status == 200:
                         content = await response.text()
