@@ -1,3 +1,22 @@
+<<<<<<< HEAD
 discord.py
 aiohttp
 urlextract
+=======
+discord
+aiohttp
+URLExtract
+audioop-lts
+configparser
+discord.ext
+re
+asyncio
+urllib
+datetime
+time 
+collections
+typing
+os
+uuid
+json
+>>>>>>> 97091272d5aa52619d57631d9ba1bda39bcf82a5
