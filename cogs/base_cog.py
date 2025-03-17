@@ -93,5 +93,6 @@ class BaseCog(commands.Cog):
                 json.dump(data, f)
     
 
+
 async def setup(bot):
     pass

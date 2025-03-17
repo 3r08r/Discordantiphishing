@@ -108,7 +108,14 @@ class BotCommands(BaseCog):
         else:
             await ctx.send("No original permissions found for this channel")
 
-
+    @commands.hybrid_command(name="set_mod_log", with_app_command=True)
+    @commands.has_permissions(administrator=True)
+    async def cmd_set_mod_log(self, ctx, channel: discord.TextChannel):
+        try:
+            await self.add_mod_log_channel_id(ctx.guild.id, channel.id)
+            await ctx.send(f"Moderation logs will be sent to {channel.mention}")
+        except Exception as e:
+            await ctx.send(f"Error setting mod log channel: {e}")
 
 
 async def setup(bot):

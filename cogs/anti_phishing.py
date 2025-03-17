@@ -1,4 +1,5 @@
 import re
+import os
 import asyncio
 import aiohttp
 from urllib.parse import urlparse
@@ -13,7 +14,7 @@ class AntiPhishing(BotEvents, BaseCog):
     def __init__(self, bot):
         self.bot = bot
         self.tracking_channel_ids = {}
-        self.API_KEY = self.bot.config.get("DEFAULT", "API_KEY")
+        self.API_KEY = os.getenv("ApiKey")
         self.SKIBIDI_PATTERN = re.compile(
             r'\b(?:' + '|'.join(re.escape(keyword) for keyword in self.bot.SKIBIDI_KEYWORDS) + r')\b', re.IGNORECASE)
 

@@ -104,5 +104,41 @@ class BotEvents(BaseCog):
         except discord.DiscordException as e:
             print(f"Error handling skibidi message: {e}")
 
+    @commands.Cog.listener()
+    async def on_member_join(self, member: discord.Member):
+        """Send user join information to tracking channel"""
+        guild = member.guild
+        tracking_channel_id = await self.get_tracking_channel_id(guild.id)
+        
+        if not tracking_channel_id:
+            return
+            
+        channel = self.bot.get_channel(tracking_channel_id)
+        if not channel:
+            return
+
+        # Get member information
+        account_age = (discord.utils.utcnow() - member.created_at).days
+        if account_age < 14:
+            risk = "Neuer Account"
+            embed_color = discord.Color.red()
+        else:
+            risk = "Naja"
+            embed_color = discord.Color.green()
+        
+        embed = discord.Embed(
+            title="New Member Joined",
+            color=discord.Color.green(),
+            timestamp=discord.utils.utcnow()
+        )
+        embed.set_thumbnail(url=member.avatar.url)
+        embed.color = embed_color
+        embed.add_field(name="Username", value=f"{member.display_name} ({member})", inline=False)
+        embed.add_field(name="Account Created", value=f"{member.created_at.strftime('%d-%m-%y')} ({account_age} days ago)", inline=True)
+        embed.add_field(name="Risiko", value=f"{risk}", inline=True)
+        embed.set_footer(text=f"User ID: {member.id}")
+
+        await channel.send(embed=embed)
+
 async def setup(bot):
     await bot.add_cog(BotEvents(bot))

@@ -1,17 +1,17 @@
 import configparser
 import discord
+import os
 from discord.ext import commands
 from cogs.base_cog import BaseCog
 
-config = configparser.ConfigParser()
-config.read('bot.conf')
-TOKEN = config.get('DEFAULT', 'TOKEN')
+TOKEN = str(os.getenv('TestToken'))
+#TOKEN = os.getenv('REAl_TOKEN')
 
 intents = discord.Intents.all()
 intents.message_content = True
+intents.members = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-bot.config = config
 bot.SKIBIDI_KEYWORDS = [
     'skibidi', 'skibidi bop', 'skibidi bop mm', 'skibidi bop mm dada',
     'skibidi dance', 'skibidi song', 'skibidi meme',
@@ -22,7 +22,6 @@ bot.SKIBIDI_KEYWORDS = [
 base_cog = BaseCog(bot)
 
 async def load_cogs():
- #   await bot.load_extension('cogs.__init__')
     await bot.load_extension('cogs.anti_spam')
     await bot.load_extension('cogs.utilities')
     await bot.load_extension('cogs.commands')
